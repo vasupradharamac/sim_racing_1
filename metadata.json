@@ -1,0 +1,6 @@
+{
+  "name": "Sim Racing Head-to-Head Dashboard",
+  "description": "A head-to-head dashboard for Harish and Shabesh tracking race history, scoreboards, and track records across F1, Assetto Corsa, and Automobilista 2.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
