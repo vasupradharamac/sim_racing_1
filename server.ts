@@ -4,9 +4,14 @@ import path from "path";
 import { createServer as createViteServer } from "vite";
 import { RaceResult } from "./src/types";
 
-const DATA_DIR = process.env.DATA_DIR || process.cwd();
+// DATA_DIR resolution order:
+// 1. Explicit DATA_DIR env var (set this in Railway if you ever change the volume mount path)
+// 2. /data if it exists (Railway persistent volume mount used by this project)
+// 3. Fallback to cwd for local/AI Studio dev where no volume is mounted
+const DATA_DIR = process.env.DATA_DIR || (fs.existsSync("/data") ? "/data" : process.cwd());
 const CSV_FILE_PATH = path.join(DATA_DIR, "racing_data.csv");
-const CSV_HEADERS = "id,game,track,car_class,conditions,winner,fastest_lap,fastest_lap_time,date,laps,race_duration\n";
+console.log(`Using CSV data path: ${CSV_FILE_PATH}`);
+const CSV_HEADERS = "id,game,track,car_class,conditions,winner,fastest_lap,fastest_lap_time,date,laps,race_duration,harish_finishing_pos,shabesh_finishing_pos,harish_starting_pos,shabesh_starting_pos\n";
 
 // Helper to sanitize fields to prevent CSV breakage
 function sanitizeField(value: string): string {
@@ -16,13 +21,19 @@ function sanitizeField(value: string): string {
 
 // Pre-seed some default competitive data if CSV doesn't exist
 function ensureCSVExists() {
-  if (!fs.existsSync(DATA_DIR)) {
-    fs.mkdirSync(DATA_DIR, { recursive: true });
-  }
   if (!fs.existsSync(CSV_FILE_PATH)) {
-    let initialData = CSV_HEADERS;
-    fs.writeFileSync(CSV_FILE_PATH, initialData, "utf-8");
-    console.log("Created empty racing_data.csv.");
+    // Safety net: if an old CSV exists at the previous default location
+    // (process.cwd()) but not at the resolved DATA_DIR, migrate it instead
+    // of creating a blank file. Prevents silent data loss if DATA_DIR ever
+    // changes or the volume mount briefly isn't available on first boot.
+    const legacyPath = path.join(process.cwd(), "racing_data.csv");
+    if (legacyPath !== CSV_FILE_PATH && fs.existsSync(legacyPath)) {
+      fs.copyFileSync(legacyPath, CSV_FILE_PATH);
+      console.log(`Migrated existing CSV from ${legacyPath} to ${CSV_FILE_PATH}.`);
+      return;
+    }
+    fs.writeFileSync(CSV_FILE_PATH, CSV_HEADERS, "utf-8");
+    console.log(`Created empty racing_data.csv at ${CSV_FILE_PATH}.`);
   }
 }
 
@@ -51,7 +62,11 @@ function readRacesFromCSV(): RaceResult[] {
           fastestLapTime: parts[7],
           date: parts[8],
           laps: parts[9] ? parseInt(parts[9], 10) : undefined,
-          raceDuration: parts[10] || undefined
+          raceDuration: parts[10] || undefined,
+          harishFinishingPos: parts[11] ? parseInt(parts[11], 10) : undefined,
+          shabeshFinishingPos: parts[12] ? parseInt(parts[12], 10) : undefined,
+          harishStartingPos: parts[13] ? parseInt(parts[13], 10) : undefined,
+          shabeshStartingPos: parts[14] ? parseInt(parts[14], 10) : undefined
         });
       }
     }
@@ -69,7 +84,12 @@ function writeRacesToCSV(races: RaceResult[]) {
     races.forEach(r => {
       const lapsStr = r.laps !== undefined && !isNaN(r.laps) ? r.laps.toString() : "";
       const durationStr = r.raceDuration || "";
-      content += `${r.id},${sanitizeField(r.game)},${sanitizeField(r.track)},${sanitizeField(r.carClass)},${sanitizeField(r.conditions)},${sanitizeField(r.winner)},${sanitizeField(r.fastestLap)},${sanitizeField(r.fastestLapTime)},${sanitizeField(r.date)},${lapsStr},${sanitizeField(durationStr)}\n`;
+      const hFinPos = r.harishFinishingPos !== undefined && !isNaN(r.harishFinishingPos) ? r.harishFinishingPos.toString() : "";
+      const sFinPos = r.shabeshFinishingPos !== undefined && !isNaN(r.shabeshFinishingPos) ? r.shabeshFinishingPos.toString() : "";
+      const hStartPos = r.harishStartingPos !== undefined && !isNaN(r.harishStartingPos) ? r.harishStartingPos.toString() : "";
+      const sStartPos = r.shabeshStartingPos !== undefined && !isNaN(r.shabeshStartingPos) ? r.shabeshStartingPos.toString() : "";
+      
+      content += `${r.id},${sanitizeField(r.game)},${sanitizeField(r.track)},${sanitizeField(r.carClass)},${sanitizeField(r.conditions)},${sanitizeField(r.winner)},${sanitizeField(r.fastestLap)},${sanitizeField(r.fastestLapTime)},${sanitizeField(r.date)},${lapsStr},${sanitizeField(durationStr)},${hFinPos},${sFinPos},${hStartPos},${sStartPos}\n`;
     });
     fs.writeFileSync(CSV_FILE_PATH, content, "utf-8");
   } catch (error) {
@@ -79,7 +99,7 @@ function writeRacesToCSV(races: RaceResult[]) {
 
 async function startServer() {
   const app = express();
-  const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
+  const PORT = 3000;
 
   app.use(express.json());
 
@@ -90,7 +110,22 @@ async function startServer() {
   });
 
   app.post("/api/races", (req, res) => {
-    const { game, track, carClass, conditions, winner, fastestLap, fastestLapTime, date, laps, raceDuration } = req.body;
+    const { 
+      game, 
+      track, 
+      carClass, 
+      conditions, 
+      winner, 
+      fastestLap, 
+      fastestLapTime, 
+      date, 
+      laps, 
+      raceDuration,
+      harishFinishingPos,
+      shabeshFinishingPos,
+      harishStartingPos,
+      shabeshStartingPos
+    } = req.body;
     
     if (!game || !track || !winner || !fastestLap || !fastestLapTime || !date) {
       return res.status(400).json({ error: "Missing required fields" });
@@ -107,7 +142,11 @@ async function startServer() {
       fastestLapTime,
       date,
       laps: laps ? parseInt(laps, 10) : undefined,
-      raceDuration: raceDuration || undefined
+      raceDuration: raceDuration || undefined,
+      harishFinishingPos: harishFinishingPos !== undefined ? parseInt(harishFinishingPos, 10) : undefined,
+      shabeshFinishingPos: shabeshFinishingPos !== undefined ? parseInt(shabeshFinishingPos, 10) : undefined,
+      harishStartingPos: harishStartingPos !== undefined ? parseInt(harishStartingPos, 10) : undefined,
+      shabeshStartingPos: shabeshStartingPos !== undefined ? parseInt(shabeshStartingPos, 10) : undefined
     };
 
     const races = readRacesFromCSV();
