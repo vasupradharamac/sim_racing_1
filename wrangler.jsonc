@@ -13,7 +13,7 @@
     {
       "binding": "DB",
       "database_name": "sim-racing-h2h-db",
-      "database_id": "REPLACE_WITH_YOUR_D1_DATABASE_ID"
+      "database_id": "4b325e2c-5a8f-4516-a635-753b58b4ed43"
     }
   ],
   "observability": {
