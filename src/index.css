@@ -21,11 +21,11 @@
 
 /* Base custom styles to recreate CRED's luxury look */
 body {
-  background-color: #000000;
+  background-color: #141418;
   background-image: 
-    radial-gradient(circle at 50% 0%, rgba(20, 20, 25, 0.6) 0%, rgba(0, 0, 0, 1) 70%),
-    radial-gradient(circle at 10% 30%, rgba(197, 168, 128, 0.02) 0%, transparent 40%),
-    radial-gradient(circle at 90% 70%, rgba(148, 169, 184, 0.02) 0%, transparent 40%);
+    radial-gradient(circle at 50% 0%, rgba(38, 38, 48, 0.7) 0%, rgba(20, 20, 24, 1) 70%),
+    radial-gradient(circle at 10% 30%, rgba(197, 168, 128, 0.04) 0%, transparent 40%),
+    radial-gradient(circle at 90% 70%, rgba(148, 169, 184, 0.04) 0%, transparent 40%);
   color: #f4f4f5;
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;

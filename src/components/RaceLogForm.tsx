@@ -25,8 +25,8 @@ export default function RaceLogForm({ onAddRace }: RaceLogFormProps) {
   // Grid / Laps Led fields
   const [harishStartingPos, setHarishStartingPos] = useState<number | "">(1);
   const [shabeshStartingPos, setShabeshStartingPos] = useState<number | "">(2);
-  const [harishFinishingPos, setHarishFinishingPos] = useState<number | "">(1);
-  const [shabeshFinishingPos, setShabeshFinishingPos] = useState<number | "">(2);
+  const [harishFinishingPos, setHarishFinishingPos] = useState<number | "DNF" | "">(1);
+  const [shabeshFinishingPos, setShabeshFinishingPos] = useState<number | "DNF" | "">(2);
 
   const [validationError, setValidationError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<boolean>(false);
@@ -308,20 +308,48 @@ export default function RaceLogForm({ onAddRace }: RaceLogFormProps) {
                 </div>
               </div>
               <div>
-                <label className="block text-[8px] text-zinc-500 font-mono uppercase mb-1 tracking-wider font-semibold">Finishing Pos</label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-[8px] text-zinc-500 font-mono uppercase tracking-wider font-semibold">Finishing Pos</label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (harishFinishingPos === "DNF") {
+                        setHarishFinishingPos(1);
+                      } else {
+                        setHarishFinishingPos("DNF");
+                        if (shabeshFinishingPos !== "DNF" && shabeshFinishingPos !== "") {
+                          setWinner("Shabesh");
+                        }
+                      }
+                    }}
+                    className={`px-1.5 py-0.5 text-[8px] font-mono font-bold rounded uppercase tracking-wider transition-colors cursor-pointer ${
+                      harishFinishingPos === "DNF"
+                        ? "bg-red-500 text-white shadow-sm shadow-red-500/50"
+                        : "bg-white/5 hover:bg-white/10 text-zinc-400"
+                    }`}
+                  >
+                    DNF
+                  </button>
+                </div>
                 <div className="flex items-center">
                   <button
                     type="button"
                     onClick={() => {
+                      if (harishFinishingPos === "DNF") {
+                        setHarishFinishingPos(1);
+                        return;
+                      }
                       const cur = harishFinishingPos === "" ? 1 : harishFinishingPos;
                       if (cur > 1) {
                         const nextVal = cur - 1;
                         setHarishFinishingPos(nextVal);
                         const shabeshPos = shabeshFinishingPos === "" ? 2 : shabeshFinishingPos;
-                        if (nextVal < shabeshPos) {
-                          setWinner("Harish");
-                        } else if (nextVal > shabeshPos) {
-                          setWinner("Shabesh");
+                        if (shabeshPos !== "DNF") {
+                          if (nextVal < (shabeshPos as number)) {
+                            setWinner("Harish");
+                          } else if (nextVal > (shabeshPos as number)) {
+                            setWinner("Shabesh");
+                          }
                         }
                       }
                     }}
@@ -331,39 +359,53 @@ export default function RaceLogForm({ onAddRace }: RaceLogFormProps) {
                   </button>
                   <input
                     type="text"
-                    inputMode="numeric"
-                    pattern="[0-9]*"
+                    inputMode="text"
                     value={harishFinishingPos}
                     onChange={(e) => {
                       const val = e.target.value;
                       if (val === "") {
                         setHarishFinishingPos("");
+                      } else if (val.toUpperCase() === "DNF") {
+                        setHarishFinishingPos("DNF");
+                        if (shabeshFinishingPos !== "DNF" && shabeshFinishingPos !== "") {
+                          setWinner("Shabesh");
+                        }
                       } else {
                         const parsed = parseInt(val, 10);
                         if (!isNaN(parsed)) {
                           setHarishFinishingPos(parsed);
                           const shabeshPos = shabeshFinishingPos === "" ? 2 : shabeshFinishingPos;
-                          if (parsed < shabeshPos) {
-                            setWinner("Harish");
-                          } else if (parsed > shabeshPos) {
-                            setWinner("Shabesh");
+                          if (shabeshPos !== "DNF") {
+                            if (parsed < (shabeshPos as number)) {
+                              setWinner("Harish");
+                            } else if (parsed > (shabeshPos as number)) {
+                              setWinner("Shabesh");
+                            }
                           }
                         }
                       }
                     }}
-                    className="w-full text-center bg-[#030304]/45 border border-white/5 py-1.5 focus:outline-none font-mono text-xs text-white font-bold"
+                    className={`w-full text-center bg-[#030304]/45 border border-white/5 py-1.5 focus:outline-none font-mono text-xs ${
+                      harishFinishingPos === "DNF" ? "text-red-400 font-black" : "text-white font-bold"
+                    }`}
                   />
                   <button
                     type="button"
                     onClick={() => {
+                      if (harishFinishingPos === "DNF") {
+                        setHarishFinishingPos(1);
+                        return;
+                      }
                       const cur = harishFinishingPos === "" ? 0 : harishFinishingPos;
                       const nextVal = cur + 1;
                       setHarishFinishingPos(nextVal);
                       const shabeshPos = shabeshFinishingPos === "" ? 2 : shabeshFinishingPos;
-                      if (nextVal < shabeshPos) {
-                        setWinner("Harish");
-                      } else if (nextVal > shabeshPos) {
-                        setWinner("Shabesh");
+                      if (shabeshPos !== "DNF") {
+                        if (nextVal < (shabeshPos as number)) {
+                          setWinner("Harish");
+                        } else if (nextVal > (shabeshPos as number)) {
+                          setWinner("Shabesh");
+                        }
                       }
                     }}
                     className="px-2.5 py-1.5 bg-[#0a0a0d] hover:bg-[#1a1a24] text-[#c5a880]/80 hover:text-[#c5a880] border border-white/5 rounded-r-lg font-mono text-xs transition-colors cursor-pointer select-none"
@@ -419,20 +461,48 @@ export default function RaceLogForm({ onAddRace }: RaceLogFormProps) {
                 </div>
               </div>
               <div>
-                <label className="block text-[8px] text-zinc-500 font-mono uppercase mb-1 tracking-wider font-semibold">Finishing Pos</label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-[8px] text-zinc-500 font-mono uppercase tracking-wider font-semibold">Finishing Pos</label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (shabeshFinishingPos === "DNF") {
+                        setShabeshFinishingPos(2);
+                      } else {
+                        setShabeshFinishingPos("DNF");
+                        if (harishFinishingPos !== "DNF" && harishFinishingPos !== "") {
+                          setWinner("Harish");
+                        }
+                      }
+                    }}
+                    className={`px-1.5 py-0.5 text-[8px] font-mono font-bold rounded uppercase tracking-wider transition-colors cursor-pointer ${
+                      shabeshFinishingPos === "DNF"
+                        ? "bg-cyan-500 text-white shadow-sm shadow-cyan-500/50"
+                        : "bg-white/5 hover:bg-white/10 text-zinc-400"
+                    }`}
+                  >
+                    DNF
+                  </button>
+                </div>
                 <div className="flex items-center">
                   <button
                     type="button"
                     onClick={() => {
+                      if (shabeshFinishingPos === "DNF") {
+                        setShabeshFinishingPos(2);
+                        return;
+                      }
                       const cur = shabeshFinishingPos === "" ? 1 : shabeshFinishingPos;
                       if (cur > 1) {
                         const nextVal = cur - 1;
                         setShabeshFinishingPos(nextVal);
                         const harishPos = harishFinishingPos === "" ? 1 : harishFinishingPos;
-                        if (nextVal < harishPos) {
-                          setWinner("Shabesh");
-                        } else if (nextVal > harishPos) {
-                          setWinner("Harish");
+                        if (harishPos !== "DNF") {
+                          if (nextVal < (harishPos as number)) {
+                            setWinner("Shabesh");
+                          } else if (nextVal > (harishPos as number)) {
+                            setWinner("Harish");
+                          }
                         }
                       }
                     }}
@@ -442,39 +512,53 @@ export default function RaceLogForm({ onAddRace }: RaceLogFormProps) {
                   </button>
                   <input
                     type="text"
-                    inputMode="numeric"
-                    pattern="[0-9]*"
+                    inputMode="text"
                     value={shabeshFinishingPos}
                     onChange={(e) => {
                       const val = e.target.value;
                       if (val === "") {
                         setShabeshFinishingPos("");
+                      } else if (val.toUpperCase() === "DNF") {
+                        setShabeshFinishingPos("DNF");
+                        if (harishFinishingPos !== "DNF" && harishFinishingPos !== "") {
+                          setWinner("Harish");
+                        }
                       } else {
                         const parsed = parseInt(val, 10);
                         if (!isNaN(parsed)) {
                           setShabeshFinishingPos(parsed);
                           const harishPos = harishFinishingPos === "" ? 1 : harishFinishingPos;
-                          if (parsed < harishPos) {
-                            setWinner("Shabesh");
-                          } else if (parsed > harishPos) {
-                            setWinner("Harish");
+                          if (harishPos !== "DNF") {
+                            if (parsed < (harishPos as number)) {
+                              setWinner("Shabesh");
+                            } else if (parsed > (harishPos as number)) {
+                              setWinner("Harish");
+                            }
                           }
                         }
                       }
                     }}
-                    className="w-full text-center bg-[#030304]/45 border border-white/5 py-1.5 focus:outline-none font-mono text-xs text-white font-bold"
+                    className={`w-full text-center bg-[#030304]/45 border border-white/5 py-1.5 focus:outline-none font-mono text-xs ${
+                      shabeshFinishingPos === "DNF" ? "text-cyan-400 font-black" : "text-white font-bold"
+                    }`}
                   />
                   <button
                     type="button"
                     onClick={() => {
+                      if (shabeshFinishingPos === "DNF") {
+                        setShabeshFinishingPos(2);
+                        return;
+                      }
                       const cur = shabeshFinishingPos === "" ? 0 : shabeshFinishingPos;
                       const nextVal = cur + 1;
                       setShabeshFinishingPos(nextVal);
                       const harishPos = harishFinishingPos === "" ? 1 : harishFinishingPos;
-                      if (nextVal < harishPos) {
-                        setWinner("Shabesh");
-                      } else if (nextVal > harishPos) {
-                        setWinner("Harish");
+                      if (harishPos !== "DNF") {
+                        if (nextVal < (harishPos as number)) {
+                          setWinner("Shabesh");
+                        } else if (nextVal > (harishPos as number)) {
+                          setWinner("Harish");
+                        }
                       }
                     }}
                     className="px-2.5 py-1.5 bg-[#0a0a0d] hover:bg-[#1a1a24] text-[#c5a880]/80 hover:text-[#c5a880] border border-white/5 rounded-r-lg font-mono text-xs transition-colors cursor-pointer select-none"

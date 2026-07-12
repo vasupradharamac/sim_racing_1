@@ -10,8 +10,8 @@ export interface RaceResult {
   date: string;
   laps?: number; // Optional lap count
   raceDuration?: string; // Optional total race duration (e.g. "15:45.321")
-  harishFinishingPos?: number;
-  shabeshFinishingPos?: number;
+  harishFinishingPos?: number | "DNF";
+  shabeshFinishingPos?: number | "DNF";
   harishStartingPos?: number;
   shabeshStartingPos?: number;
 }

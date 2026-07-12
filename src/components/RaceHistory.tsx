@@ -203,10 +203,10 @@ export default function RaceHistory({ races, onDeleteRace, onRefresh }: RaceHist
                       <td className="py-4 px-4 text-center">
                         <div className="inline-flex flex-col gap-1 font-mono text-[10px] tracking-wider text-zinc-500">
                           <div>
-                            <span className="text-red-500 font-bold">SOLO:</span> P{hStart} → P{hFin}
+                            <span className="text-red-500 font-bold">SOLO:</span> P{hStart} → {hFin === "DNF" ? <span className="text-red-400 font-bold">DNF</span> : `P${hFin}`}
                           </div>
                           <div>
-                            <span className="text-cyan-400 font-bold">VIAT:</span> P{sStart} → P{sFin}
+                            <span className="text-cyan-400 font-bold">VIAT:</span> P{sStart} → {sFin === "DNF" ? <span className="text-cyan-400 font-bold">DNF</span> : `P${sFin}`}
                           </div>
                         </div>
                       </td>

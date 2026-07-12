@@ -1,3 +1,5 @@
+import { RaceResult } from "./types";
+
 /**
  * Parse time string (e.g., "1:22.453", "20:45.320", "1:15:45.320", "45.890") into total seconds.
  */
@@ -189,3 +191,62 @@ export function getTrackLengthKM(trackName: string): number {
   }
   return 5.0; // Fallback
 }
+
+export function getCelebratoryMessage(
+  newRace: RaceResult,
+  allRacesBefore: RaceResult[],
+  allRacesAfter: RaceResult[]
+): string {
+  const winner = newRace.winner; // "Harish" | "Shabesh"
+
+  // 1. Check Win Streak (Heater)
+  const sorted = [...allRacesAfter].sort(
+    (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+  );
+  let streak = 0;
+  for (let i = sorted.length - 1; i >= 0; i--) {
+    if (sorted[i].winner === winner) {
+      streak++;
+    } else {
+      break;
+    }
+  }
+
+  if (streak >= 2) {
+    const playerName = winner === "Harish" ? "SoloArmada" : "ViaticMonk";
+    return `${playerName} is on a ${streak}-race heater! 🔥`;
+  }
+
+  // 2. Check Lead Change / Taking Lead Back
+  const harishBefore = allRacesBefore.filter((r) => r.winner === "Harish").length;
+  const shabeshBefore = allRacesBefore.filter((r) => r.winner === "Shabesh").length;
+  const harishAfter = allRacesAfter.filter((r) => r.winner === "Harish").length;
+  const shabeshAfter = allRacesAfter.filter((r) => r.winner === "Shabesh").length;
+
+  const wasBehindBefore = winner === "Harish" ? harishBefore <= shabeshBefore : shabeshBefore <= harishBefore;
+  const isAheadNow = winner === "Harish" ? harishAfter > shabeshAfter : shabeshAfter > harishAfter;
+
+  if (wasBehindBefore && isAheadNow && allRacesBefore.length > 0) {
+    const leaderName = winner === "Harish" ? "SoloArmada" : "ViaticMonk";
+    return `${leaderName} takes the lead back!`;
+  }
+
+  // 3. Check First Win at Track
+  const previousWinsAtTrack = allRacesBefore.filter(
+    (r) => r.track === newRace.track && r.winner === winner
+  );
+  if (previousWinsAtTrack.length === 0) {
+    let cleanTrack = newRace.track;
+    const match = cleanTrack.match(/\(([^)]+)\)/);
+    if (match) {
+      cleanTrack = match[1];
+    }
+    const playerName = winner === "Harish" ? "Harish" : "ViaticMonk";
+    return `First win at ${cleanTrack} for ${playerName}!`;
+  }
+
+  // 4. Default celebratory message
+  const playerName = winner === "Harish" ? "SoloArmada" : "ViaticMonk";
+  return `${playerName} claims victory at ${newRace.track}!`;
+}
+

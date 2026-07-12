@@ -126,8 +126,8 @@ export default function TrackRecords({ races }: TrackRecordsProps) {
               }}
               className={`flex-grow px-4 py-2.5 rounded-lg font-mono text-[11px] font-black tracking-widest uppercase transition-all duration-300 whitespace-nowrap cursor-pointer ${
                 selectedGame === game
-                  ? "bg-white text-black font-bold shadow-md"
-                  : "text-zinc-500 hover:text-zinc-300"
+                  ? "bg-[#c5a880] text-black font-bold shadow-lg"
+                  : "bg-[#141418]/60 backdrop-blur-xl text-zinc-300 hover:text-white border border-white/15"
               }`}
             >
               {game}

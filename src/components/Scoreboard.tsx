@@ -42,10 +42,10 @@ export default function Scoreboard({ races }: ScoreboardProps) {
     }
   }
 
-  // Dominant Track
-  const getDominantTrack = (player: "Harish" | "Shabesh") => {
+  // Top 3 Dominant Tracks
+  const getTopTracks = (player: "Harish" | "Shabesh"): Array<[string, number]> => {
     const playerWins = races.filter((r) => r.winner === player);
-    if (playerWins.length === 0) return "N/A";
+    if (playerWins.length === 0) return [];
     const trackCounts: Record<string, number> = {};
     playerWins.forEach((r) => {
       let name = r.track;
@@ -55,11 +55,13 @@ export default function Scoreboard({ races }: ScoreboardProps) {
       }
       trackCounts[name] = (trackCounts[name] || 0) + 1;
     });
-    return Object.entries(trackCounts).reduce((a, b) => (a[1] > b[1] ? a : b))[0];
+    return Object.entries(trackCounts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3);
   };
 
-  const harishDominantTrack = getDominantTrack("Harish");
-  const shabeshDominantTrack = getDominantTrack("Shabesh");
+  const harishTopTracks = getTopTracks("Harish");
+  const shabeshTopTracks = getTopTracks("Shabesh");
 
   // Spinning rotary gauge turbine visual element
   const RotaryTach = () => (
@@ -159,9 +161,20 @@ export default function Scoreboard({ races }: ScoreboardProps) {
             <span className="text-zinc-600">FASTEST LAPS</span>
             <span className="text-white font-semibold">{harishFastestLaps} SPLITS</span>
           </div>
-          <div className="flex justify-between items-center">
-            <span className="text-zinc-600">DOMINANT TRACK</span>
-            <span className="text-zinc-300 font-medium truncate max-w-[130px]">{harishDominantTrack}</span>
+          <div className="pt-2 border-t border-white/[0.04]">
+            <span className="text-zinc-600 block mb-1 text-[10px]">DOMINANT TRACKS (TOP 3)</span>
+            {harishTopTracks.length === 0 ? (
+              <span className="text-zinc-500 italic text-[10px]">No wins recorded</span>
+            ) : (
+              <div className="space-y-1">
+                {harishTopTracks.map(([track, count], idx) => (
+                  <div key={track} className="flex justify-between items-center text-[10px]">
+                    <span className="text-zinc-300 truncate max-w-[140px]">{idx + 1}. {track}</span>
+                    <span className="text-[#df8f73] font-bold">{count} win{count > 1 ? "s" : ""}</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </motion.div>
@@ -335,9 +348,20 @@ export default function Scoreboard({ races }: ScoreboardProps) {
             <span className="text-zinc-600">FASTEST LAPS</span>
             <span className="text-white font-semibold">{shabeshFastestLaps} SPLITS</span>
           </div>
-          <div className="flex justify-between items-center">
-            <span className="text-zinc-600">DOMINANT TRACK</span>
-            <span className="text-zinc-300 font-medium truncate max-w-[130px]">{shabeshDominantTrack}</span>
+          <div className="pt-2 border-t border-white/[0.04]">
+            <span className="text-zinc-600 block mb-1 text-[10px]">DOMINANT TRACKS (TOP 3)</span>
+            {shabeshTopTracks.length === 0 ? (
+              <span className="text-zinc-500 italic text-[10px]">No wins recorded</span>
+            ) : (
+              <div className="space-y-1">
+                {shabeshTopTracks.map(([track, count], idx) => (
+                  <div key={track} className="flex justify-between items-center text-[10px]">
+                    <span className="text-zinc-300 truncate max-w-[140px]">{idx + 1}. {track}</span>
+                    <span className="text-[#94a9b8] font-bold">{count} win{count > 1 ? "s" : ""}</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </motion.div>

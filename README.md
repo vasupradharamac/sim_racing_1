@@ -1,20 +1,24 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
-</div>
+# H2H Telemetry — Sim Racing Head-to-Head Dashboard
 
-# Run and deploy your AI Studio app
+A head-to-head dashboard for Harish and Shabesh tracking race history, scoreboards, and track records across F1, Assetto Corsa, and Automobilista 2.
 
-This contains everything you need to run your app locally.
+Runs as a single Cloudflare Worker: a React/Vite frontend served as static assets, backed by a small Worker API and a Cloudflare D1 (SQLite) database.
 
-View your app in AI Studio: https://ai.studio/apps/a08988ae-d946-45c8-807a-d246e810aec5
+## Run locally
 
-## Run Locally
+**Prerequisites:** Node.js 20+
 
-**Prerequisites:**  Node.js
+```bash
+npm install
+npm run dev
+```
 
+This uses the Cloudflare Vite plugin, which runs the full stack (frontend + Worker API + a local D1 database) in one dev server. On first run, apply the schema/seed data to the local database:
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+```bash
+npm run db:migrate:local
+```
+
+## Deploy to Cloudflare
+
+See [DEPLOY.md](DEPLOY.md) for the full step-by-step deployment guide.
